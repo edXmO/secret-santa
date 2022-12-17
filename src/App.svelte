@@ -1,17 +1,31 @@
 <script lang="ts">
+  import { getApp } from "firebase/app";
+  import {
+    connectFunctionsEmulator,
+    getFunctions,
+    httpsCallable,
+  } from "firebase/functions";
   import { onDestroy } from "svelte";
   import { fly } from "svelte/transition";
   import "./app.css";
+  import Carousel from "./lib/Carousel.svelte";
   import Modal from "./lib/Modal.svelte";
 
-  let endDate = "2022-12-24T23:59:59.999Z";
+  const app = getApp();
+  const functions = getFunctions(app);
+
+  process.env.NODE_ENV === "development" &&
+    connectFunctionsEmulator(functions, "localhost", 5001);
+
+  let endDate = "2023-01-02T23:59:59.999Z";
   let email = "";
   let tos = false;
   let modal;
-  $: disabled = !email || !tos;
+  let registered = false;
+  let loading = false;
 
   let countDownDate = new Date(endDate).getTime();
-  console.log({ countDownDate });
+
   let days = 0;
   let hours = 0;
   let minutes = 0;
@@ -28,12 +42,36 @@
 
   $: timeLeft = `${days}d ${hours}h ${minutes}m ${seconds}s`;
 
+  async function register() {
+    const registerParticipant = httpsCallable(functions, "registerParticipant");
+    console.log(email);
+    if (!email) {
+      return console.log("no email");
+    }
+
+    loading = true;
+
+    // try {
+    //   await registerParticipant({ email }).then(() => {
+    //     registered = true;
+    //     loading = false;
+    //   });
+    // } catch (error) {
+    //   loading = false;
+    //   registered = false;
+    //   console.log(error);
+    // }
+  }
+
   onDestroy(() => clearInterval(x));
 </script>
 
-<main class="flex flex-col items-center justify-center min-w-full min-h-screen">
+<main
+  class="flex flex-col items-center justify-center min-w-full overflow-x-hidden"
+>
+  <Carousel />
   <section
-    class="flex flex-1 flex-col items-center justify-center w-full pt-14"
+    class="flex flex-1 flex-col items-center justify-center w-full pt-14 overflow-y-hidden"
   >
     <h1
       in:fly={{ delay: 65, y: -20 }}
@@ -45,209 +83,239 @@
       >
         Machines
       </h1>
-      <img
+      <!-- <img
         in:fly={{ delay: 260, y: -20 }}
         alt="maracas"
         class="absolute top-16 right-72 rotate-45"
         src="/maracas-svgrepo-com.svg"
-      />
+      /> -->
     </h1>
     <h1
       in:fly={{ delay: 320, y: -20 }}
-      class="text-sm font-extrabold w-2/3 text-center mb-4"
+      class="text-md font-extrabold w-2/3 text-center pt-4"
     >
       2022 Ed.
     </h1>
-    <div class="flex flex-row h-24 items-center justify-around">
+    <div class="flex flex-col gap-8 py-32 items-center justify-around">
+      <p class="font-extrabold text-2xl">Tiempo restante</p>
       <p class="font-extrabold text-3xl">{timeLeft}</p>
     </div>
 
+    <div
+      class="flex flex-col items-center justify-around py-6  gap-2 md:w-96 w-4/5"
+    >
+      <h1 class="text-2xl font-bold text-center py-6">Ubicación del evento</h1>
+      <button
+        on:click={() =>
+          window.open(
+            "https://www.google.es/maps/place/Mar+y+Tierra/@40.4557361,-3.6806853,17z/data=!3m2!4b1!5s0xd4228f73df22e61:0xa09ddf4d464978e7!4m5!3m4!1s0xd422920bf7c53ed:0xa50189431792a333!8m2!3d40.4557361!4d-3.6784966?hl=es",
+            "_blank"
+          )}
+        class="flex py-4  w-full bg-slate-800 border-indigo-600 border-2 rounded-md items-center justify-around"
+      >
+        <p class="font-semibold">Restaurante Mar & Tierra</p>
+        <!-- location icon -->
+        <svg
+          class="w-6 h-6 ml-2 text-indigo-600"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 14l9-5-9-5-9 5 9 5zm0 0v7"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <div class="flex flex-col py-20 w-full px-12 items-center">
+      <h1 class="text-5xl font-bold text-center pb-24">Reglas</h1>
+      <div
+        class="flex flex-1 justify-center lg:flex-row flex-col gap-14 w-full"
+      >
+        <div
+          class="flex flex-col rounded-md h-full lg:w-96 lg:min-h-96 bg-slate-800 border-indigo-600 border-2"
+        >
+          <div
+            class="flex items-center justify-start h-20 px-6 border-b-indigo-600 border-b-2 border-dashed"
+          >
+            <p class="font-bold text-lg md:text-2xl">Discurso</p>
+          </div>
+          <div class="p-6">
+            <ul>
+              <li class="pb-4 pt-4 md:text-xl">
+                Todo el mundo debe dar un breve discurso durante la cena.
+              </li>
+              <li class="pb-4 md:text-xl">
+                Cada participante debera introducir el texto en la web una vez
+                registrada su participación en el evento.
+              </li>
+              <li class="pb-4 md:text-xl">
+                Transcurrido el tiempo límite, el sistema asignará un discurso a
+                cada participante.
+              </li>
+              <li class="pb-4 md:text-xl">
+                El discurso será leído por el participante que le ha tocado. El
+                resto de participantes deberán adivinar de quien es el discurso.
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div
+          class="flex  flex-col bg-slate-800 h-full lg:w-96 lg:min-h-96 lg:pb-32 border-indigo-600 border-2  rounded-md"
+        >
+          <div
+            class="flex items-center justify-start h-20 px-6 border-b-indigo-600 border-b-2 border-dashed"
+          >
+            <p class="font-bold text-lg md:text-2xl">
+              Premios Cabrones Machine
+            </p>
+          </div>
+          <div class="p-6">
+            <ul>
+              <li class="pb-4 pt-4 md:text-xl">
+                Los premios serán entregados a los participantes que hayan
+                adivinado el discurso de su amigo invisible.
+              </li>
+              <li class="pb-4 md:text-xl">
+                Los premios serán entregados por el organizador del evento.
+              </li>
+              <li class="pb-4 md:text-xl">
+                Los premios serán entregados a los participantes que hayan
+                adivinado el discurso de su amigo invisible.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h1 class="text-5xl font-bold text-center pb-24 pt-10">
+      Introduce tu email para participar
+    </h1>
     <div class="flex flex-col gap-8 pt-4 md:w-96 w-4/5">
       <input
+        disabled={tos}
         type="email"
         placeholder="Ingresa tu email..."
         class="h-14 rounded-xl bg-slate-800 placeholder-slate-700 text-inherit font-semibold outline-none border-indigo-600 border-[1px] px-6 focus:ring-2 focus:ring-indigo-600 active:ring-indigo-600 transition-all duration-300"
         bind:value={email}
       />
+
       <button
-        {disabled}
+        disabled={!tos}
         type="submit"
         class="h-12 rounded-xl text-inherit font-semibold bg-indigo-600 disabled:opacity-60 transition-all duration-250 ease-in-out"
       >
         Participar
       </button>
-    </div>
-    <div
-      class="flex flex-row items-center justify-around py-6 gap-2 md:w-96 w-4/5"
-    >
-      <input
-        on:click={() => {
-          if (!tos) {
-            modal.show();
-            tos = false;
-          }
-        }}
-        class="w-6 h-6 bg-slate-800 border-indigo-600 outline-none rounded-md cursor-pointer  checked:bg-indigo-600 active:ring-indigo-600 active:bg-transparent focus:ring-2 focus: ring-indigo-600 transition-all duration-300"
-        type="checkbox"
-      />
-      <span class=" font-semibold text-center">
-        He leído y acepto los <button
-          class="text-indigo-600 font-semibold hover:text-indigo-500 transition-colors duration-150 ease-in"
-          >Términos y Condiciones</button
-        >
-      </span>
-    </div>
-  </section>
-  <section class="flex flex-col items-center w-screen overflow-x-hidden">
-    <h1 class="font-semibold text-xl">Patrocinado por</h1>
-    <div class="flex flex-col py-4 flex-1 items-center">
-      <div class="relative flex flex-1 overflow-x-hidden">
-        <div class="py-12 animate-marquee whitespace-nowrap">
-          <span
-            class="mx-12 cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-            >Patanel</span
+      <div
+        class="flex flex-row items-center justify-around py-6 gap-2 md:w-96 w-4/5"
+      >
+        <input
+          on:click={() => {
+            if (!tos) {
+              modal.show();
+            }
+          }}
+          bind:value={tos}
+          class="w-6 h-6 bg-slate-800 border-indigo-600 outline-none rounded-md cursor-pointer  checked:bg-indigo-600 active:ring-indigo-600 active:bg-transparent focus:ring-2 focus: ring-indigo-600 transition-all duration-300"
+          type="checkbox"
+        />
+        <span class="font-semibold text-center">
+          He leído y acepto los <button
+            on:click={() => {
+              modal.show();
+            }}
+            class="text-indigo-600 font-semibold hover:text-indigo-500 transition-colors duration-150 ease-in"
+            >Términos y Condiciones</button
           >
-          <span
-            class="mx-12 cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-            >Doña Patata</span
-          >
-          <span
-            class="mx-12 cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-            >Hidalgo</span
-          >
-          <span
-            class="mx-12 cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-            >Bar Alfonsillo</span
-          >
-          <span
-            class="mx-12 relative h-full cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-          >
-            Trust Fitness Center
-          </span>
-          <span
-            class="mx-12 relative h-full cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-          >
-            Colegio Santa María del Bosque
-          </span>
-          <span
-            class="mx-12 relative h-full cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-          >
-            La Cortá
-          </span>
-          <span
-            class="mx-12 relative h-full cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-          >
-            D'Neto
-          </span>
-          <span
-            class="mx-12 relative h-full cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-          >
-            Pqa. San Miguel Arcángel
-          </span>
-          <span
-            class="mx-12 relative h-full cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-          >
-            Island Club
-          </span>
-        </div>
-        <div
-          class="absolute top-0 py-12 animate-marquee2 whitespace-nowrap group"
-        >
-          <span
-            class="mx-12 cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-            >Patanel</span
-          >
-          <span
-            class="mx-12 cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-            >Doña Patata</span
-          >
-          <span
-            class="mx-12 cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-            >Hidalgo</span
-          >
-          <span
-            class="mx-12 cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-            >Bar Alfonsillo</span
-          >
-          <span
-            class="mx-12  cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-            >Trust Fitness Center</span
-          >
-          <span
-            class="mx-12 relative h-full cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-          >
-            Colegio Santa María del Bosque
-          </span>
-          <span
-            class="mx-12 relative h-full cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-          >
-            La Cortá
-          </span>
-          <span
-            class="mx-12 relative h-full cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-          >
-            D'Neto
-          </span>
-          <span
-            class="mx-12 relative h-full cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-          >
-            Pqa. San Miguel Arcángel
-          </span>
-          <span
-            class="mx-12 relative h-full cursor-pointer text-3xl hover:text-indigo-600 transition-all duration-150 ease-in"
-          >
-            Island Club
-          </span>
-        </div>
+        </span>
       </div>
     </div>
   </section>
   <Modal bind:this={modal}>
-    <div
-      class="flex justify-between bg-indigo-600 w-full h-20 items-center px-8"
-    >
-      <h1 class="text-xl font-semibold">Términos y Condiciones</h1>
-      <button
-        class="bg-slate-800 text-slate-600 font-bold py-2 px-6 rounded-md hover:text-slate-200 transition-all duration-150 ease-in"
-        on:click={() => modal.hide()}
+    {#if !loading}
+      <div
+        class="flex justify-between bg-indigo-600 rounded-tl-md rounded-tr-md w-full h-20 items-center px-8"
       >
-        Cerrar
-      </button>
-    </div>
-    <div class="flex flex-col h-full w-full p-10">
-      <ol class="flex pt-6 pb-16 flex-col gap-4">
-        <li class="font-semibold text-xl">
-          <span class="text-indigo-600">1.</span> Mantenlo en secreto.
-        </li>
-        <li class="font-semibold text-xl">
-          <span class="text-indigo-600">2.</span> El precio del regalo deberá mantenerse
-          entre los 5-15€.
-        </li>
-        <li class="font-semibold text-xl">
-          <span class="text-indigo-600">3.</span> Es preferible que el regalo no
-          esté vivo. O muerto.
-        </li>
-        <li class="font-semibold text-xl">
-          <span class="text-indigo-600">4.</span> Intenta ser creativo y original.
-          No es lo mismo un regalo que otro.
-        </li>
-        <li class="font-semibold text-xl">
-          <span class="text-indigo-600">5.</span> Mantenlo en secreto.
-        </li>
-        <li class="font-semibold text-xl">
-          <span class="text-indigo-600">6.</span> Nada de soportes para cargadores.
-        </li>
-      </ol>
-      <button
-        class="items-center justify-center w-full h-42 bg-indigo-600 text-white font-bold py-2 px-6 rounded-md hover:bg-indigo-800 transition-all duration-150 ease-in"
-        on:click={() => {
-          modal.hide();
-          tos = true;
-        }}
+        <h1 class="text-xl font-semibold">Términos y Condiciones</h1>
+      </div>
+      <div class="flex flex-col h-2/3 w-full px-8 py-4 my-2 overflow-y-scroll">
+        <ol class="flex pt-6 pb-16 flex-col gap-4">
+          <li in:fly={{ y: 20, delay: 50 }} class="font-semibold text-xl">
+            <span class="text-indigo-600">1.</span> Mantenlo en secreto.
+          </li>
+          <li in:fly={{ y: 20, delay: 100 }} class="font-semibold text-xl">
+            <span class="text-indigo-600">2.</span> El precio del regalo deberá mantenerse
+            entre los 5-15€.
+          </li>
+          <li in:fly={{ y: 20, delay: 150 }} class="font-semibold text-xl">
+            <span class="text-indigo-600">3.</span> Es preferible que el regalo no
+            esté vivo. O muerto.
+          </li>
+          <li in:fly={{ y: 20, delay: 200 }} class="font-semibold text-xl">
+            <span class="text-indigo-600">4.</span> Intenta ser creativo y original.
+            La elaboración de un regalo de forma artesanal es muy valorada.
+          </li>
+          <li in:fly={{ y: 20, delay: 250 }} class="font-semibold text-xl">
+            <span class="text-indigo-600">5.</span> Mantenlo en secreto.
+          </li>
+          <li in:fly={{ y: 20, delay: 300 }} class="font-semibold text-xl">
+            <span class="text-indigo-600">6.</span> Nada de soportes para cargadores.
+          </li>
+          <li in:fly={{ y: 20, delay: 350 }} class="font-semibold text-xl">
+            <span class="text-indigo-600">7.</span> No tener la piel fina.
+          </li>
+        </ol>
+      </div>
+      <div class="flex flex-col justify-around h-32 px-10">
+        <button
+          class="items-center justify-center h-42 w-full bg-indigo-600 text-white font-bold py-2 px-6 rounded-md hover:bg-indigo-800 transition-all duration-150 ease-in"
+          on:click={() => {
+            register()
+              // .then(() => {
+              //   modal.hide();
+              // })
+              .catch(() => {
+                modal.hide();
+              });
+          }}
+        >
+          Aceptar
+        </button>
+        <button
+          class="bg-slate-700 w-full text-slate-800 font-bold py-2 px-6 rounded-md hover:text-slate-200 transition-all duration-150 ease-in"
+          on:click={() => {
+            tos = false;
+            modal.hide();
+          }}
+        >
+          Cerrar
+        </button>
+      </div>
+    {:else if loading}
+      <div
+        class="flex flex-col h-full w-full overflow-y-scroll self-center bg-green-200 items-center justify-center"
       >
-        Aceptar
-      </button>
-    </div>
+        <h1 class="text-2xl font-semibold text-center">Cargando...</h1>
+      </div>
+    {:else if !loading && registered}
+      <div
+        class="flex flex-col h-full w-full overflow-y-scroll self-center bg-green-200 items-center justify-center"
+      >
+        <h1 class="text-2xl font-semibold text-center">
+          ¡Gracias por participar!
+        </h1>
+        <p class="text-xl font-semibold text-center">
+          Te hemos enviado un email con los detalles de tu participación.
+        </p>
+      </div>
+    {/if}
   </Modal>
 </main>
 

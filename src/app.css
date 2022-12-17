@@ -26,17 +26,20 @@
   font-weight: 400;
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+main {
   background: linear-gradient(180deg,
       rgba(17, 84, 99, 0.1) 0%,
       rgba(39, 59, 63, 0.1) 31.77%,
       rgba(19, 61, 100, 0.1) 64.58%,
       rgba(79, 21, 137, 0.1) 100%),
     linear-gradient(0deg, #232c30, #232c30);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
 }
 
 a {
@@ -52,4 +55,16 @@ a:hover {
 html,
 body {
   height: 100%;
+}
+
+::-webkit-scrollbar {
+  -webkit-appearance: none;
+  background-color: rgb(51 65 85);
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 12px;
+  background-color: rgb(79 70 229);
+  -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
 }
