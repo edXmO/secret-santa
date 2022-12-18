@@ -34,6 +34,7 @@
 }
 
 main {
+  scroll-behavior: smooth;
   background: linear-gradient(180deg,
       rgba(17, 84, 99, 0.1) 0%,
       rgba(39, 59, 63, 0.1) 31.77%,
