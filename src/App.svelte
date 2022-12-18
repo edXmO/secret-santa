@@ -27,6 +27,9 @@
 
   let countDownDate = new Date(endDate).getTime();
 
+  // create a date object for the date 24/12/2022 at 21:00:00
+  let limitDate = new Date("Dec 24, 2022 21:00:00");
+
   let days = 0;
   let hours = 0;
   let minutes = 0;
@@ -142,7 +145,7 @@
     </div>
 
     <div class="flex flex-col items-center justify-around gap-2 md:w-96 w-4/5">
-      <h1 class="text-2xl font-bold text-center py-6">
+      <h1 class="text-3xl font-bold text-center py-6">
         Ubicación y día del evento
       </h1>
       <p class="font-semibold font-xl py-4">02/01/2023</p>
@@ -174,7 +177,7 @@
     </div>
 
     <div class="flex flex-col pb-20 pt-32 w-full px-12 items-center">
-      <h1 class="text-4xl font-bold text-center pb-12">Evento</h1>
+      <h1 class="text-3xl font-bold text-center pb-12">Evento</h1>
       <div
         class="flex flex-1 justify-center lg:flex-row flex-col gap-14 w-full"
       >
@@ -190,16 +193,9 @@
           </div>
           <div class="p-6">
             <ul>
-              <li class="pb-4 pt-4 md:text-xl">
-                Los premios serán entregados a los participantes que hayan
-                adivinado el discurso de su amigo invisible.
-              </li>
-              <li class="pb-4 md:text-xl">
-                Los premios serán entregados por el organizador del evento.
-              </li>
-              <li class="pb-4 md:text-xl">
-                Los premios serán entregados a los participantes que hayan
-                adivinado el discurso de su amigo invisible.
+              <li class="pb-4 pt-4 text-xl">
+                Se entregará un premio al final del evento a cada uno de los
+                participantes.
               </li>
             </ul>
           </div>
@@ -207,52 +203,74 @@
       </div>
     </div>
 
-    <h1 class="text-3xl font-bold text-center pb-10 pt-32">
-      Introduce tu nombre e email para participar
-    </h1>
-    <div class="flex flex-col gap-8 pt-4 md:w-96 w-4/5">
-      <input
-        type="text"
-        placeholder="Nombre..."
-        class="h-14 rounded-xl bg-slate-800 placeholder-slate-700 text-inherit font-semibold outline-none border-indigo-600 border-[1px] px-6 focus:ring-2 focus:ring-indigo-600 active:ring-indigo-600 transition-all duration-300"
-        bind:value={name}
-      />
-      <input
-        disabled={tos}
-        type="email"
-        placeholder="Email..."
-        class="h-14 rounded-xl bg-slate-800 placeholder-slate-700 text-inherit font-semibold outline-none border-indigo-600 border-[1px] px-6 focus:ring-2 focus:ring-indigo-600 active:ring-indigo-600 transition-all duration-300"
-        bind:value={email}
-      />
-
-      <button
-        disabled={!tos}
-        on:click={() => modal.show()}
-        type="submit"
-        class="h-12 rounded-xl text-inherit font-semibold bg-indigo-600 disabled:opacity-60 transition-all duration-250 ease-in-out"
-      >
-        Participar
-      </button>
-      <div
-        class="flex flex-row items-center justify-evenly py-6 gap-2 lg:w-full"
-      >
+    <!-- create an if statement that will show this block of code only if the date is before limitDate -->
+    {#if new Date().getTime() < limitDate.getTime()}
+      <h1 class="text-3xl font-bold text-center pb-10 pt-32">
+        Introduce tu nombre e email para participar
+      </h1>
+      <div class="flex flex-col gap-8 pt-4 md:w-96 w-4/5">
         <input
-          bind:value={tos}
-          class="w-6 h-6 bg-slate-800 border-indigo-600 outline-none rounded-md cursor-pointer  checked:bg-indigo-600 active:ring-indigo-600 active:bg-transparent focus:ring-2 focus: ring-indigo-600 transition-all duration-300"
-          type="checkbox"
+          type="text"
+          placeholder="Nombre..."
+          class="h-14 rounded-xl bg-slate-800 placeholder-slate-700 text-inherit font-semibold outline-none border-indigo-600 border-[1px] px-6 focus:ring-2 focus:ring-indigo-600 active:ring-indigo-600 transition-all duration-300"
+          bind:value={name}
         />
-        <span class="font-semibold text-center">
-          He leído y acepto los <button
-            disabled={registered}
-            on:click={() => {
-              modal.show();
-            }}
-            class="text-indigo-600 font-semibold hover:text-indigo-500 transition-colors duration-150 ease-in"
-            >Términos y Condiciones</button
-          >
-        </span>
+        <input
+          disabled={tos}
+          type="email"
+          placeholder="Email..."
+          class="h-14 rounded-xl bg-slate-800 placeholder-slate-700 text-inherit font-semibold outline-none border-indigo-600 border-[1px] px-6 focus:ring-2 focus:ring-indigo-600 active:ring-indigo-600 transition-all duration-300"
+          bind:value={email}
+        />
+
+        <button
+          disabled={!tos || !email || !name}
+          on:click={() => modal.show()}
+          type="submit"
+          class="h-12 rounded-xl text-inherit font-semibold bg-indigo-600 disabled:opacity-60 transition-all duration-250 ease-in-out"
+        >
+          Participar
+        </button>
+        <div
+          class="flex flex-row items-center justify-evenly py-6 gap-2 lg:w-full"
+        >
+          <input
+            bind:value={tos}
+            class="w-6 h-6 bg-slate-800 border-indigo-600 outline-none rounded-md cursor-pointer  checked:bg-indigo-600 active:ring-indigo-600 active:bg-transparent focus:ring-2 focus: ring-indigo-600 transition-all duration-300"
+            type="checkbox"
+          />
+          <span class="font-semibold text-center">
+            He leído y acepto los <button
+              disabled={registered}
+              on:click={() => {
+                modal.show();
+              }}
+              class="text-indigo-600 font-semibold hover:text-indigo-500 transition-colors duration-150 ease-in"
+              >Términos y Condiciones</button
+            >
+          </span>
+        </div>
       </div>
-    </div>
+    {:else}
+      <h1 class="text-2xl font-bold text-center pb-10 pt-20 px-8">
+        La fecha límite para participar ha finalizado. ¡Gracias por participar!
+      </h1>
+      <pre class="text-indigo-600">
+        _\/_
+         /\
+         /\
+        /  \
+       /~~  \o
+      /o     \
+     / ~~*~~~ \
+    /    o     \
+   /~~~~~~~~    \~`
+  /__*_ _______ _\
+         ||
+       \====/
+        \__/
+    </pre>
+    {/if}
     <div
       class="flex flex-col items-center justify-center w-full h-20 pt-12 pb-8"
     >

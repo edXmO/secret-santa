@@ -10,3 +10,6 @@ node_modules/
 
 # Ignore serviceAccount
 secretSanta_serviceAccount.json
+
+#Email credentials
+emailCredentials.ts
